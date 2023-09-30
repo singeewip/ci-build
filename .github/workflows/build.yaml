@@ -19,6 +19,12 @@ jobs:
         run: |
           sed -i '/verify_license_key/a return Ok(());' backend/src/ee.rs
           sed -i '/validate_license_key/a return Ok("Singee".to_string());' backend/windmill-api/src/ee.rs
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
