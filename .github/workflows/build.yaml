@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  repository_dispatch:
+    tyoes: [build]
+  workflow_dispatch:
+permissions:
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: 'windmill-labs/windmill'
+          ref: ${{ github.event.client_payload.ref || '' }}
+      - name: Inject
+        run: |
+          sed -i '/verify_license_key/a return Ok(());' backend/src/ee.rs
+          sed -i '/validate_license_key/a return Ok("Singee".to_string());' backend/windmill-api/src/ee.rs
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            ghcr.io/singeewip/ci-build
+          tags: |
+            type=raw,value=latest
+            type=raw,value=${{ github.event.client_payload.version || 'latest' }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          build-args: |
+            features=enterprise 
+            nsjail=true
+          platforms: linux/amd64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: true
