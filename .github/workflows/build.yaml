@@ -2,7 +2,7 @@ name: CI
 
 on:
   repository_dispatch:
-    tyoes: [build]
+    types: [build]
   workflow_dispatch:
 permissions:
   packages: write
